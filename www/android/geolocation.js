@@ -29,12 +29,7 @@ const pluginToNativeWatchMap = {};
 
 module.exports = {
     getCurrentPosition: function (success, error, args) {
-        const win = function (deviceApiLevel) {
-            // Workaround for bug specific to API 31 where requesting `enableHighAccuracy: false` results in TIMEOUT error.
-            if (deviceApiLevel === 31) {
-                if (typeof args === 'undefined') args = {};
-                args.enableHighAccuracy = true;
-            }
+        const win = function () {
             const geo = cordova.require('cordova/modulemapper').getOriginalSymbol(window, 'navigator.geolocation'); // eslint-disable-line no-undef
             geo.getCurrentPosition(success, error, args);
         };
@@ -43,19 +38,13 @@ module.exports = {
                 error(new PositionError(PositionError.PERMISSION_DENIED, 'Illegal Access'));
             }
         };
-        const enableHighAccuracy = typeof args === 'object' && !!args.enableHighAccuracy;
-        exec(win, fail, 'Geolocation', 'getPermission', [enableHighAccuracy]);
+        exec(win, fail, 'Geolocation', 'getPermission', []);
     },
 
     watchPosition: function (success, error, args) {
         const pluginWatchId = utils.createUUID();
 
-        const win = function (deviceApiLevel) {
-            // Workaround for bug specific to API 31 where requesting `enableHighAccuracy: false` results in TIMEOUT error.
-            if (deviceApiLevel === 31) {
-                if (typeof args === 'undefined') args = {};
-                args.enableHighAccuracy = true;
-            }
+        const win = function () {
             const geo = cordova.require('cordova/modulemapper').getOriginalSymbol(window, 'navigator.geolocation'); // eslint-disable-line no-undef
             pluginToNativeWatchMap[pluginWatchId] = geo.watchPosition(success, error, args);
         };
@@ -65,8 +54,7 @@ module.exports = {
                 error(new PositionError(PositionError.PERMISSION_DENIED, 'Illegal Access'));
             }
         };
-        const enableHighAccuracy = typeof args === 'object' && !!args.enableHighAccuracy;
-        exec(win, fail, 'Geolocation', 'getPermission', [enableHighAccuracy]);
+        exec(win, fail, 'Geolocation', 'getPermission', []);
 
         return pluginWatchId;
     },
